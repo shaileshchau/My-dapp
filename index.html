@@ -1,61 +1,100 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Multi Wallet dApp</title>
+  <title>My Web3 dApp</title>
+  <style>
+    body {
+      text-align: center;
+      background: #111;
+      color: #fff;
+      font-family: Arial;
+    }
+    button {
+      padding: 10px 18px;
+      margin: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 
 <body>
 
-<h2>🚀 Connect Wallet</h2>
+<h2>🚀 My dApp (Trust + MetaMask)</h2>
 
-<button onclick="connectMetaMask()">Connect MetaMask</button>
-<button onclick="connectTrust()">Connect Trust Wallet</button>
-
+<button onclick="connectWallet()">Connect Wallet</button>
 <p id="wallet">Not Connected</p>
 
-<!-- WalletConnect -->
-<script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
+<button onclick="getBalance()">Check Balance</button>
+<button onclick="sendETH()">Send 0.001 ETH</button>
 
 <script>
 
-let web3;
 let userAccount;
 
-// 🔗 MetaMask connect
-async function connectMetaMask() {
+// 🔗 CONNECT WALLET
+async function connectWallet() {
   if (!window.ethereum) {
-    alert("MetaMask not found");
+    alert("❌ Open in Trust Wallet or MetaMask browser");
     return;
   }
 
-  const accounts = await window.ethereum.request({
-    method: "eth_requestAccounts"
-  });
+  try {
+    const accounts = await window.ethereum.request({
+      method: "eth_requestAccounts"
+    });
 
-  userAccount = accounts[0];
-  document.getElementById("wallet").innerText = "MetaMask: " + userAccount;
+    userAccount = accounts[0];
 
-  web3 = new Web3(window.ethereum);
+    document.getElementById("wallet").innerText =
+      "Connected: " + userAccount;
+
+  } catch (err) {
+    console.log(err);
+    alert("❌ Connection failed");
+  }
 }
 
-// 🔗 Trust Wallet connect (WalletConnect)
-async function connectTrust() {
+// 💰 GET BALANCE
+async function getBalance() {
+  if (!userAccount) {
+    alert("Connect wallet first");
+    return;
+  }
 
-  const provider = new WalletConnectProvider.default({
-    rpc: {
-      1: "https://mainnet.infura.io/v3/"
-    }
+  const balance = await window.ethereum.request({
+    method: "eth_getBalance",
+    params: [userAccount, "latest"]
   });
 
-  await provider.enable();
+  const eth = parseInt(balance, 16) / 1e18;
 
-  web3 = new Web3(provider);
+  alert("Balance: " + eth + " ETH");
+}
 
-  const accounts = await web3.eth.getAccounts();
-  userAccount = accounts[0];
+// 💸 SEND ETH
+async function sendETH() {
+  if (!userAccount) {
+    alert("Connect wallet first");
+    return;
+  }
 
-  document.getElementById("wallet").innerText = "Trust Wallet: " + userAccount;
+  try {
+    await window.ethereum.request({
+      method: "eth_sendTransaction",
+      params: [{
+        from: userAccount,
+        to: "YOUR_WALLET_ADDRESS", // 👈 તમારું address નાખો
+        value: "0x38D7EA4C68000"   // 0.001 ETH
+      }]
+    });
+
+    alert("✅ ETH Sent");
+
+  } catch (err) {
+    console.log(err);
+    alert("❌ Transaction failed");
+  }
 }
 
 </script>
