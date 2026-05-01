@@ -1,76 +1,61 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>My dApp</title>
+  <title>Multi Wallet dApp</title>
 </head>
 
 <body>
 
-<h2>My dApp</h2>
+<h2>🚀 Connect Wallet</h2>
 
-<button onclick="connectWallet()">Connect Wallet</button>
+<button onclick="connectMetaMask()">Connect MetaMask</button>
+<button onclick="connectTrust()">Connect Trust Wallet</button>
+
 <p id="wallet">Not Connected</p>
 
-<button onclick="getBalance()">Check Balance</button>
-<button onclick="sendETH()">Send ETH</button>
+<!-- WalletConnect -->
+<script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
 
 <script>
 
-async function getAccount() {
+let web3;
+let userAccount;
+
+// 🔗 MetaMask connect
+async function connectMetaMask() {
   if (!window.ethereum) {
-    alert("Open in MetaMask");
-    return null;
+    alert("MetaMask not found");
+    return;
   }
 
   const accounts = await window.ethereum.request({
     method: "eth_requestAccounts"
   });
 
-  return accounts[0];
+  userAccount = accounts[0];
+  document.getElementById("wallet").innerText = "MetaMask: " + userAccount;
+
+  web3 = new Web3(window.ethereum);
 }
 
-// CONNECT
-async function connectWallet() {
-  const acc = await getAccount();
-  if (acc) {
-    document.getElementById("wallet").innerText = "Connected: " + acc;
-  }
-}
+// 🔗 Trust Wallet connect (WalletConnect)
+async function connectTrust() {
 
-// BALANCE
-async function getBalance() {
-  const acc = await getAccount();
-  if (!acc) return;
-
-  const balance = await window.ethereum.request({
-    method: "eth_getBalance",
-    params: [acc, "latest"]
+  const provider = new WalletConnectProvider.default({
+    rpc: {
+      1: "https://mainnet.infura.io/v3/"
+    }
   });
 
-  const eth = parseInt(balance, 16) / 1e18;
-  alert("Balance: " + eth + " ETH");
-}
+  await provider.enable();
 
-// SEND ETH
-async function sendETH() {
-  const acc = await getAccount();
-  if (!acc) return;
+  web3 = new Web3(provider);
 
-  try {
-    await window.ethereum.request({
-      method: "eth_sendTransaction",
-      params: [{
-        from: acc,
-        to: "YOUR_WALLET_ADDRESS",
-        value: "0x38D7EA4C68000"
-      }]
-    });
+  const accounts = await web3.eth.getAccounts();
+  userAccount = accounts[0];
 
-    alert("ETH Sent");
-  } catch (err) {
-    console.log(err);
-    alert("Transaction failed");
-  }
+  document.getElementById("wallet").innerText = "Trust Wallet: " + userAccount;
 }
 
 </script>
