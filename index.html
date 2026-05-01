@@ -1,33 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My dApp</title>
+</head>
+
+<body>
+
+<h2>My dApp</h2>
+
+<button id="connectBtn">Connect Wallet</button>
+<p id="wallet">Not Connected</p>
+
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+document.getElementById("connectBtn").addEventListener("click", async () => {
 
-  let provider;
-  let signer;
+  // MetaMask check
+  if (typeof window.ethereum === "undefined") {
+    alert("❌ MetaMask not found\n👉 Open in MetaMask browser");
+    return;
+  }
 
-  document.getElementById("connectBtn").onclick = async () => {
+  try {
+    // direct request (no ethers)
+    const accounts = await window.ethereum.request({
+      method: "eth_requestAccounts"
+    });
 
-    if (!window.ethereum) {
-      alert("❌ MetaMask not installed");
-      return;
-    }
+    document.getElementById("wallet").innerText =
+      "Connected: " + accounts[0];
 
-    try {
-      provider = new ethers.providers.Web3Provider(window.ethereum);
-
-      await window.ethereum.request({
-        method: 'eth_requestAccounts'
-      });
-
-      signer = provider.getSigner();
-      const address = await signer.getAddress();
-
-      document.getElementById("wallet").innerText = "Connected: " + address;
-
-    } catch (error) {
-      console.log(error);
-      alert("❌ Connection failed or rejected");
-    }
-  };
+  } catch (err) {
+    console.log(err);
+    alert("❌ Connection failed or rejected");
+  }
 
 });
 </script>
+
+</body>
+</html>
