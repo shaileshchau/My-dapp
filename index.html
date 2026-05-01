@@ -1,99 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>My Web3 dApp</title>
-  <style>
-    body {
-      text-align: center;
-      background: #111;
-      color: #fff;
-      font-family: Arial;
-    }
-    button {
-      padding: 10px 18px;
-      margin: 8px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-  </style>
+  <title>Trust Wallet Connect</title>
 </head>
 
 <body>
 
-<h2>🚀 My dApp (Trust + MetaMask)</h2>
+<h2>Connect Trust Wallet</h2>
 
 <button onclick="connectWallet()">Connect Wallet</button>
 <p id="wallet">Not Connected</p>
 
-<button onclick="getBalance()">Check Balance</button>
-<button onclick="sendETH()">Send 0.001 ETH</button>
+<script src="https://unpkg.com/@walletconnect/ethereum-provider@2.10.1/dist/index.umd.js"></script>
 
 <script>
 
-let userAccount;
+let provider;
 
-// 🔗 CONNECT WALLET
 async function connectWallet() {
-  if (!window.ethereum) {
-    alert("❌ Open in Trust Wallet or MetaMask browser");
-    return;
-  }
-
   try {
-    const accounts = await window.ethereum.request({
-      method: "eth_requestAccounts"
+
+    provider = await window.EthereumProvider.init({
+      projectId: "demo", // demo ચાલે basic test માટે
+      chains: [1],
+      showQrModal: true
     });
 
-    userAccount = accounts[0];
+    await provider.enable();
+
+    const accounts = provider.accounts;
 
     document.getElementById("wallet").innerText =
-      "Connected: " + userAccount;
+      "Connected: " + accounts[0];
 
   } catch (err) {
     console.log(err);
-    alert("❌ Connection failed");
-  }
-}
-
-// 💰 GET BALANCE
-async function getBalance() {
-  if (!userAccount) {
-    alert("Connect wallet first");
-    return;
-  }
-
-  const balance = await window.ethereum.request({
-    method: "eth_getBalance",
-    params: [userAccount, "latest"]
-  });
-
-  const eth = parseInt(balance, 16) / 1e18;
-
-  alert("Balance: " + eth + " ETH");
-}
-
-// 💸 SEND ETH
-async function sendETH() {
-  if (!userAccount) {
-    alert("Connect wallet first");
-    return;
-  }
-
-  try {
-    await window.ethereum.request({
-      method: "eth_sendTransaction",
-      params: [{
-        from: userAccount,
-        to: "YOUR_WALLET_ADDRESS", // 👈 તમારું address નાખો
-        value: "0x38D7EA4C68000"   // 0.001 ETH
-      }]
-    });
-
-    alert("✅ ETH Sent");
-
-  } catch (err) {
-    console.log(err);
-    alert("❌ Transaction failed");
+    alert("Connection failed");
   }
 }
 
