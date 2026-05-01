@@ -2,20 +2,99 @@
 <html>
 <head>
   <title>My dApp</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      text-align: center;
+      background: #111;
+      color: white;
+      font-family: Arial;
+    }
+
+    button {
+      padding: 12px 20px;
+      margin: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 6px;
+      border: none;
+    }
+  </style>
 </head>
 
 <body>
 
-<h2>🚀 My First dApp</h2>
+<h2>🚀 My dApp</h2>
 
 <button id="connectBtn">Connect Wallet</button>
-<p id="wallet"></p>
+<p id="wallet">Not Connected</p>
 
 <button id="sendBtn">Send 0.001 ETH</button>
 
+<!-- ethers.js -->
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
-<script src="app.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  let provider;
+  let signer;
+
+  const connectBtn = document.getElementById("connectBtn");
+  const sendBtn = document.getElementById("sendBtn");
+  const walletText = document.getElementById("wallet");
+
+  // 🔗 CONNECT WALLET
+  connectBtn.onclick = async () => {
+
+    // ❌ MetaMask check
+    if (typeof window.ethereum === 'undefined') {
+      alert("⚠️ MetaMask not found\n👉 Open this site inside MetaMask browser");
+      return;
+    }
+
+    try {
+      provider = new ethers.providers.Web3Provider(window.ethereum);
+
+      // request accounts
+      await provider.send("eth_requestAccounts", []);
+
+      signer = provider.getSigner();
+      const address = await signer.getAddress();
+
+      walletText.innerText = "Connected: " + address;
+
+    } catch (err) {
+      console.log(err);
+      alert("❌ Connection failed");
+    }
+  };
+
+  // 💸 SEND ETH
+  sendBtn.onclick = async () => {
+
+    if (!signer) {
+      alert("⚠️ Connect wallet first");
+      return;
+    }
+
+    try {
+      const tx = await signer.sendTransaction({
+        to: "YOUR_WALLET_ADDRESS", // 👉 તમારું address નાખો
+        value: ethers.utils.parseEther("0.001")
+      });
+
+      await tx.wait();
+
+      alert("✅ Transaction Successful");
+
+    } catch (err) {
+      console.log(err);
+      alert("❌ Transaction Failed");
+    }
+  };
+
+});
+</script>
 
 </body>
 </html>
