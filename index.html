@@ -1,113 +1,78 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>My Full dApp</title>
-  <style>
-    body { text-align:center; background:#111; color:#fff; font-family:Arial; }
-    button { padding:10px 18px; margin:8px; border-radius:6px; cursor:pointer; }
-  </style>
+  <title>My dApp</title>
 </head>
 
 <body>
 
-<h2>🚀 My Full Web3 dApp</h2>
+<h2>My dApp</h2>
 
 <button onclick="connectWallet()">Connect Wallet</button>
 <p id="wallet">Not Connected</p>
 
-<button onclick="getBalance()">Check ETH Balance</button>
-
-<button onclick="sendETH()">Send 0.001 ETH</button>
-
-<hr>
-
-<h3>ERC-20 Token (USDT)</h3>
-<button onclick="sendToken()">Send Token</button>
+<button onclick="getBalance()">Check Balance</button>
+<button onclick="sendETH()">Send ETH</button>
 
 <script>
-let userAccount;
 
-// 🔗 CONNECT WALLET
-async function connectWallet() {
+async function getAccount() {
   if (!window.ethereum) {
-    alert("Open in MetaMask Browser");
-    return;
+    alert("Open in MetaMask");
+    return null;
   }
 
   const accounts = await window.ethereum.request({
     method: "eth_requestAccounts"
   });
 
-  userAccount = accounts[0];
-  document.getElementById("wallet").innerText = "Connected: " + userAccount;
+  return accounts[0];
 }
 
-// 💰 GET ETH BALANCE
+// CONNECT
+async function connectWallet() {
+  const acc = await getAccount();
+  if (acc) {
+    document.getElementById("wallet").innerText = "Connected: " + acc;
+  }
+}
+
+// BALANCE
 async function getBalance() {
-  if (!userAccount) return alert("Connect wallet first");
+  const acc = await getAccount();
+  if (!acc) return;
 
   const balance = await window.ethereum.request({
     method: "eth_getBalance",
-    params: [userAccount, "latest"]
+    params: [acc, "latest"]
   });
 
   const eth = parseInt(balance, 16) / 1e18;
   alert("Balance: " + eth + " ETH");
 }
 
-// 💸 SEND ETH
+// SEND ETH
 async function sendETH() {
-  if (!userAccount) return alert("Connect wallet first");
+  const acc = await getAccount();
+  if (!acc) return;
 
   try {
     await window.ethereum.request({
       method: "eth_sendTransaction",
       params: [{
-        from: userAccount,
-        to: "YOUR_WALLET_ADDRESS",   // 👈 બદલો
-        value: "0x38D7EA4C68000"     // 0.001 ETH
+        from: acc,
+        to: "YOUR_WALLET_ADDRESS",
+        value: "0x38D7EA4C68000"
       }]
     });
 
     alert("ETH Sent");
   } catch (err) {
+    console.log(err);
     alert("Transaction failed");
   }
 }
 
-// 🪙 SEND ERC-20 TOKEN (USDT style)
-async function sendToken() {
-  if (!userAccount) return alert("Connect wallet first");
-
-  // 👉 Example USDT contract (Ethereum Mainnet)
-  const tokenAddress = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-
-  // ERC20 transfer function signature
-  const methodId = "0xa9059cbb";
-
-  // receiver address (change this)
-  const to = "YOUR_WALLET_ADDRESS".replace("0x","").padStart(64,'0');
-
-  // amount (1 USDT = 1000000)
-  const amount = (1 * 1000000).toString(16).padStart(64,'0');
-
-  const data = methodId + to + amount;
-
-  try {
-    await window.ethereum.request({
-      method: "eth_sendTransaction",
-      params: [{
-        from: userAccount,
-        to: tokenAddress,
-        data: data
-      }]
-    });
-
-    alert("Token Sent");
-  } catch (err) {
-    alert("Token Transaction Failed");
-  }
-}
 </script>
 
 </body>
